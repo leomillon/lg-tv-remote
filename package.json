@@ -1,0 +1,26 @@
+{
+  "name": "lg-tv-remote",
+  "version": "0.1.0",
+  "description": "LG TV Remote Web Application",
+  "main": "app.js",
+  "scripts": {
+    "test": "grunt test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/leomillon/lg-tv-remote.git"
+  },
+  "keywords": [
+    "LG",
+    "SmartTV",
+    "Remote",
+    "Controller",
+    "TV"
+  ],
+  "author": "Léo Millon",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/leomillon/lg-tv-remote/issues"
+  },
+  "homepage": "https://github.com/leomillon/lg-tv-remote"
+}
