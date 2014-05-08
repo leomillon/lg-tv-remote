@@ -15,6 +15,14 @@ var KEYS = require("./keys").keys;
 
 var tvContext = null;
 
+function isUndefined(variable) {
+    return variable === null || typeof variable === 'undefined';
+}
+
+function isDefined(variable) {
+    return !isUndefined(variable);
+}
+
 function buildTvContext(discoveryData) {
     if (discoveryData != null) {
         var descriptionLocation = discoveryData[LOCATION_KEY];
@@ -95,24 +103,20 @@ function extractData(data) {
 
 function sendHttpRequest(options, body, callback) {
     var req = http.request(options, function(res) {
-        /*console.log('STATUS: ' + res.statusCode);
-         console.log('HEADERS: ' + JSON.stringify(res.headers));*/
         res.setEncoding('utf8');
-
-        console.log('\n\n==========HEADERS==============');
-        console.log(res.headers);
-        console.log('STATUS : ' + res.statusCode);
 
         var responseContent = '';
         res.on('data', function (chunk) {
             responseContent += chunk;
-            /*console.log('\n\n===========CHUNK===============')
-             console.log(chunk);*/
         });
 
         res.on('end', function() {
-            //console.log('\n\n=========RESPONSE END===============');
-            callback(null, responseContent);
+            res.body = responseContent;
+            console.log('\n\n==========RESPONSE==============');
+            console.log('Status:', res.statusCode);
+            console.log('Body:');
+            console.log(res.body);
+            callback(null, res);
         });
     });
 
@@ -122,28 +126,48 @@ function sendHttpRequest(options, body, callback) {
         callback(e);
     });
 
-    if (body != null) {
+    if (isDefined(body)) {
         req.write(body);
     }
 
-    //console.log('\n\n=========REQUEST END===============');
     req.end();
+}
+
+function buildApiXml(apiType, apiName, param, port) {
+    var doc = new libxmljs.Document();
+
+    var apiElement = doc.node('envelope')
+        .node('api').attr('type', apiType);
+
+    if (isDefined(apiName)) {
+        apiElement.node('name', apiName);
+    }
+    if (isDefined(param)) {
+        apiElement.node('value', String(param)); // Value needs to be a String
+    }
+    if (isDefined(port)) {
+        apiElement.node('port', String(port));
+    }
+
+    console.log('XML : ', doc.toString());
+
+    return doc;
 }
 
 function sendDisplayKeyPairingRequest(tvContext) {
     if (tvContext != null) {
         console.log('\n\n==========DISPLAY KEY PAIRING==============');
-        var body = '<?xml version="1.0" encoding="utf-8"?><envelope><api type="pairing"><name>showKey</name></api></envelope>';
+        var body = buildApiXml('pairing', 'showKey').toString();
         sendHttpRequest(buildKeyPairingOptions(tvContext), body, function(err, res) {
             // Nothing to do
         });
     }
 }
 
-function sendStartKeyPairingRequest(tvContext, callback) {
+function sendStartKeyPairingRequest(tvContext, keyPairingValue, callback) {
     if (tvContext != null) {
         console.log('\n\n==========SEND START KEY PAIRING==============');
-        var body = '<?xml version="1.0" encoding="utf-8"?><envelope><api type="pairing"><name>hello</name><value>941905</value><port>' + tvContext.port + '</port></api></envelope>';
+        var body = buildApiXml('pairing', 'hello', keyPairingValue, tvContext.port).toString();
         sendHttpRequest(buildKeyPairingOptions(tvContext), body, function (err, res) {
             callback();
         });
@@ -152,7 +176,7 @@ function sendStartKeyPairingRequest(tvContext, callback) {
 function sendEndKeyPairingRequest(tvContext, callback) {
     if (tvContext != null) {
         console.log('\n\n==========SEND END KEY PAIRING==============');
-        var body = '<?xml version="1.0" encoding="utf-8"?><envelope><api type="pairing"><name>byebye</name><port>' + tvContext.port + '</port></api></envelope>';
+        var body = buildApiXml('pairing', 'byebye', null, tvContext.port).toString();
         sendHttpRequest(buildKeyPairingOptions(tvContext), body, function (err, res) {
             callback();
         });
@@ -162,12 +186,9 @@ function sendEndKeyPairingRequest(tvContext, callback) {
 function sendCmdRequest(tvContext, cmdValue, callback) {
     if (tvContext != null) {
         console.log('\n\n==========SEND COMMAND==============');
-        console.log('cmdValue : ' + cmdValue);
-        var body = '<?xml version="1.0" encoding="utf-8"?><envelope><api type="command"><name>HandleKeyInput</name><value>' + cmdValue + '</value></api></envelope>';
+        var body = buildApiXml('command', 'HandleKeyInput', cmdValue).toString();
         var options = buildCmdOptions(tvContext);
-        console.log(options);
         sendHttpRequest(options, body, function (err, res) {
-            console.log('cmd sent');
             callback();
         });
     }
@@ -177,22 +198,18 @@ sendDiscoveryRequest(function(discoveryData) {
     if (discoveryData != null) {
         tvContext = buildTvContext(discoveryData);
 
-        //console.log('tvContext :', tvContext);
-
         if (tvContext != null) {
             var options = buildDiscoveryOptions(tvContext);
             sendHttpRequest(options, null, function(err, res) {
                 if (err) throw err;
 
-                console.log(res);
-
-                var xmlResponse = libxmljs.parseXml(res);
+                var xmlResponse = libxmljs.parseXml(res.body);
                 var tvUuid = xmlResponse.get('//uuid').text();
                 var tvModelName = xmlResponse.get('//modelName').text();
                 console.log('TV model name = ' + tvModelName);
                 console.log('TV UUID = ' + tvUuid);
                 //sendDisplayKeyPairingRequest(tvContext);
-                sendStartKeyPairingRequest(tvContext, function() {
+                sendStartKeyPairingRequest(tvContext, '941905', function() {
                     console.log('key pairing ok');
                     sendCmdRequest(tvContext, KEYS.PROG_LIST, function() {
                         sendEndKeyPairingRequest(tvContext, function () {
