@@ -13,6 +13,17 @@ var url = require("url");
 var libxmljs = require("libxmljs");
 var KEYS = require("./keys").keys;
 
+var device = {
+    name: '47LA667S-ZB_18',
+    uuid: 'c9837a54-2d18-0812-c864-68df71c2c818',
+    type: 'TV',
+    pairingKey: '941905'
+};
+
+var knownDevices = [];
+
+knownDevices[device.uuid] = device;
+
 var tvContext = null;
 
 function isUndefined(variable) {
@@ -26,7 +37,6 @@ function isDefined(variable) {
 function buildTvContext(discoveryData) {
     if (discoveryData != null) {
         var descriptionLocation = discoveryData[LOCATION_KEY];
-        //console.log('Location is : ' + descriptionLocation);
 
         if (descriptionLocation != null) {
             var descriptionUrl = url.parse(descriptionLocation);
@@ -208,16 +218,22 @@ sendDiscoveryRequest(function(discoveryData) {
                 var tvModelName = xmlResponse.get('//modelName').text();
                 console.log('TV model name = ' + tvModelName);
                 console.log('TV UUID = ' + tvUuid);
-                //sendDisplayKeyPairingRequest(tvContext);
-                sendStartKeyPairingRequest(tvContext, '941905', function() {
-                    console.log('key pairing ok');
-                    sendCmdRequest(tvContext, KEYS.PROG_LIST, function() {
-                        sendEndKeyPairingRequest(tvContext, function () {
-                            console.log("DONE !!!!");
+
+                var knownDevice = knownDevices[tvUuid];
+
+                if (isDefined(knownDevice)) {
+                    sendStartKeyPairingRequest(tvContext, knownDevice.pairingKey, function() {
+                        sendCmdRequest(tvContext, KEYS.PROG_LIST, function() {
+                            sendEndKeyPairingRequest(tvContext, function () {
+                                console.log("Done.");
+                            });
                         });
                     });
-                });
-
+                }
+                else {
+                    //sendDisplayKeyPairingRequest(tvContext);
+                    console.log('Error unknown device for uuid:', tvUuid);
+                }
             });
         }
     }
