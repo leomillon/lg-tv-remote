@@ -37,7 +37,9 @@ var KEYS = {
     },
     CHANNEL: {
         UP: 27,
-        DOWN: 28
+        DOWN: 28,
+        PREVIOUS: 403, // flash back
+        FAVORITE: 404
     },
     COLOR: {
         BLUE: 29,
@@ -62,7 +64,6 @@ var KEYS = {
     CURRENT_PROG_INFO: 45,
     ASPECT_RATIO: 46,
     EXTERNAL_INPUT: 47,
-    PIP_SEC_VIDEO: 48,
     SUBTITLE: 49, // Show and change
     PROG_LIST: 50,
     TELE_TEXT: 51,
@@ -72,8 +73,6 @@ var KEYS = {
         LEFT_RIGHT: 401
     },
     DASH: 402,
-    PREVIOUS_CHANNEL: 403, // flash back
-    FAVORITE_CHANNEL: 404,
     QUICK_MENU: 405,
     TEXT_OPTION: 406,
     AUDIO_DESCRIPTION: 407,
@@ -84,6 +83,7 @@ var KEYS = {
     EXIT: 412,
     RESERVATION_PROG_LIST: 413,
     PIP: {
+        SEC_VIDEO: 48,
         CHANNEL: {
             UP: 414,
             DOWN: 415
