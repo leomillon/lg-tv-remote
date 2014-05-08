@@ -133,7 +133,7 @@ function buildDefaultOptions(tvContext, path, method) {
     };
 }
 
-function buildRecoveryOptions(tvContext) {
+function buildDiscoveryOptions(tvContext) {
     return buildDefaultOptions(tvContext, tvContext.descriptionPath, 'GET');
 }
 
@@ -265,7 +265,7 @@ sendDiscoveryRequest(function(discoveryData) {
         //console.log('tvContext :', tvContext);
 
         if (tvContext != null) {
-            var options = buildRecoveryOptions(tvContext);
+            var options = buildDiscoveryOptions(tvContext);
             sendHttpRequest(options, null, function(err, res) {
                 if (err) throw err;
 
