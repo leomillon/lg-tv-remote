@@ -91,7 +91,7 @@ var KEYS = {
         SWITCH: 416 // Switching between primary/secondary video
     },
     MY_APPS: 417
-}
+};
 
 var dgram = require('dgram');
 var client = dgram.createSocket('udp4');
