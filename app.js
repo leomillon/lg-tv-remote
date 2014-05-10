@@ -11,7 +11,7 @@ var client = dgram.createSocket('udp4');
 var http = require("http");
 var url = require("url");
 var libxmljs = require("libxmljs");
-var KEYS = require("./keys").keys;
+var KEYS = require("./keys");
 
 var device = {
     name: '47LA667S-ZB_18',

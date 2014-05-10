@@ -1,4 +1,4 @@
-exports.keys = {
+module.exports = {
     POWER: 1,
     NUMBER: {
         0: 2,
