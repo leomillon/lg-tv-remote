@@ -1,240 +1,63 @@
-var BROADCAST_IP = '239.255.255.250';
-var BROADCAST_PORT = 1900;
-var DISCOVERY_REQ = 'M-SEARCH * HTTP/1.1\r\nHOST: 239.255.255.250:1900\r\nMAN: "ssdp:discover"\r\nMX: 3\r\n' +
-    'ST: udap:rootservice\r\nUSER-AGENT: UDAP/2.0\r\n\r\n';
-var LOCATION_KEY = 'LOCATION';
-var KEY_PAIRING_PATH = '/udap/api/pairing';
-var CMD_PATH = '/udap/api/command';
+var express = require('express');
+var path = require('path');
+var favicon = require('static-favicon');
+var logger = require('morgan');
+var cookieParser = require('cookie-parser');
+var bodyParser = require('body-parser');
+var swig = require('swig');
 
-var dgram = require('dgram');
-var client = dgram.createSocket('udp4');
-var http = require("http");
-var url = require("url");
-var libxmljs = require("libxmljs");
-var KEYS = require("./keys");
+var routes = require('./routes/index');
+var tvApi = require('./routes/tv-api');
 
-var device = {
-    name: '47LA667S-ZB_18',
-    uuid: 'c9837a54-2d18-0812-c864-68df71c2c818',
-    type: 'TV',
-    pairingKey: '941905'
-};
+var app = express();
 
-var knownDevices = [];
+// view engine setup
+app.engine('html', swig.renderFile);
 
-knownDevices[device.uuid] = device;
+app.set('views', path.join(__dirname, 'views'));
+app.set('view engine', 'html');
 
-var tvContext = null;
+app.use(favicon());
+app.use(logger('dev'));
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded());
+app.use(cookieParser());
+app.use(require('less-middleware')({ src: path.join(__dirname, 'public') }));
+app.use(express.static(path.join(__dirname, 'public')));
 
-function isUndefined(variable) {
-    return variable === null || typeof variable === 'undefined';
-}
+app.use('/', routes);
+app.use('/tv-api/', tvApi);
 
-function isDefined(variable) {
-    return !isUndefined(variable);
-}
-
-function buildTvContext(discoveryData) {
-    if (discoveryData != null) {
-        var descriptionLocation = discoveryData[LOCATION_KEY];
-
-        if (descriptionLocation != null) {
-            var descriptionUrl = url.parse(descriptionLocation);
-
-            var tvContext = {};
-            tvContext.host = descriptionUrl.host;
-            tvContext.hostname = descriptionUrl.hostname;
-            tvContext.port = descriptionUrl.port;
-            tvContext.descriptionPath = descriptionUrl.path;
-            return tvContext;
-        }
-    }
-    return null;
-}
-
-function buildDefaultOptions(tvContext, path, method) {
-    return {
-        host: tvContext.hostname,
-        port: tvContext.port,
-        path: path,
-        method: method,
-        headers: {
-            'Content-Type': 'text/xml; charset=utf-8',
-            'User-Agent': 'UDAP/2.0'
-        }
-    };
-}
-
-function buildDiscoveryOptions(tvContext) {
-    return buildDefaultOptions(tvContext, tvContext.descriptionPath, 'GET');
-}
-
-function buildKeyPairingOptions(tvContext) {
-    return buildDefaultOptions(tvContext, KEY_PAIRING_PATH, 'POST');
-}
-
-function buildCmdOptions(tvContext) {
-    return buildDefaultOptions(tvContext, CMD_PATH, 'POST');
-}
-
-function sendDiscoveryRequest(callback) {
-    var discoveryRequest = new Buffer(DISCOVERY_REQ);
-    client.bind(1901);
-    client.send(discoveryRequest, 0, discoveryRequest.length, BROADCAST_PORT, BROADCAST_IP);
-    client.on('message', function(response, rinfo) {
-        console.log('Response from : ' + rinfo.address + ':' + rinfo.port);
-        callback(extractData(response.toString('utf-8')));
-        client.close();
-    });
-
-}
-
-function extractData(data) {
-    console.log('===== RESPONSE =====');
-    console.log(data);
-    console.log('====================');
-
-    if (data.indexOf('200 OK') != -1) {
-        console.log('Discovery response with success!');
-        var regex = /([A-Z-]+):( )?(.*)/g;
-        var match = regex.exec(data);
-        var extractedData = [];
-        while (match != null) {
-            extractedData[match[1]] = match[3];
-            match = regex.exec(data);
-        }
-        return extractedData;
-    }
-    else {
-        console.error('An error occured...');
-        return null;
-    }
-}
-
-function sendHttpRequest(options, body, callback) {
-    var req = http.request(options, function(res) {
-        res.setEncoding('utf8');
-
-        var responseContent = '';
-        res.on('data', function (chunk) {
-            responseContent += chunk;
-        });
-
-        res.on('end', function() {
-            res.body = responseContent;
-            console.log('\n\n==========RESPONSE==============');
-            console.log('Status:', res.statusCode);
-            console.log('Body:');
-            console.log(res.body);
-            callback(null, res);
-        });
-    });
-
-    req.on('error', function(e) {
-        console.log('\n\n==========ERROR==============');
-        console.log('problem with request: ' + e.message);
-        callback(e);
-    });
-
-    if (isDefined(body)) {
-        req.write(body);
-    }
-
-    req.end();
-}
-
-function buildApiXml(apiType, apiName, param, port) {
-    var doc = new libxmljs.Document();
-
-    var apiElement = doc.node('envelope')
-        .node('api').attr('type', apiType);
-
-    if (isDefined(apiName)) {
-        apiElement.node('name', apiName);
-    }
-    if (isDefined(param)) {
-        apiElement.node('value', String(param)); // Value needs to be a String
-    }
-    if (isDefined(port)) {
-        apiElement.node('port', String(port));
-    }
-
-    console.log('XML : ', doc.toString());
-
-    return doc;
-}
-
-function sendDisplayKeyPairingRequest(tvContext) {
-    if (tvContext != null) {
-        console.log('\n\n==========DISPLAY KEY PAIRING==============');
-        var body = buildApiXml('pairing', 'showKey').toString();
-        sendHttpRequest(buildKeyPairingOptions(tvContext), body, function(err, res) {
-            // Nothing to do
-        });
-    }
-}
-
-function sendStartKeyPairingRequest(tvContext, keyPairingValue, callback) {
-    if (tvContext != null) {
-        console.log('\n\n==========SEND START KEY PAIRING==============');
-        var body = buildApiXml('pairing', 'hello', keyPairingValue, tvContext.port).toString();
-        sendHttpRequest(buildKeyPairingOptions(tvContext), body, function (err, res) {
-            callback();
-        });
-    }
-}
-function sendEndKeyPairingRequest(tvContext, callback) {
-    if (tvContext != null) {
-        console.log('\n\n==========SEND END KEY PAIRING==============');
-        var body = buildApiXml('pairing', 'byebye', null, tvContext.port).toString();
-        sendHttpRequest(buildKeyPairingOptions(tvContext), body, function (err, res) {
-            callback();
-        });
-    }
-}
-
-function sendCmdRequest(tvContext, cmdValue, callback) {
-    if (tvContext != null) {
-        console.log('\n\n==========SEND COMMAND==============');
-        var body = buildApiXml('command', 'HandleKeyInput', cmdValue).toString();
-        var options = buildCmdOptions(tvContext);
-        sendHttpRequest(options, body, function (err, res) {
-            callback();
-        });
-    }
-}
-
-sendDiscoveryRequest(function(discoveryData) {
-    if (discoveryData != null) {
-        tvContext = buildTvContext(discoveryData);
-
-        if (tvContext != null) {
-            var options = buildDiscoveryOptions(tvContext);
-            sendHttpRequest(options, null, function(err, res) {
-                if (err) throw err;
-
-                var xmlResponse = libxmljs.parseXml(res.body);
-                var tvUuid = xmlResponse.get('//uuid').text();
-                var tvModelName = xmlResponse.get('//modelName').text();
-                console.log('TV model name = ' + tvModelName);
-                console.log('TV UUID = ' + tvUuid);
-
-                var knownDevice = knownDevices[tvUuid];
-
-                if (isDefined(knownDevice)) {
-                    sendStartKeyPairingRequest(tvContext, knownDevice.pairingKey, function() {
-                        sendCmdRequest(tvContext, KEYS.PROG_LIST, function() {
-                            sendEndKeyPairingRequest(tvContext, function () {
-                                console.log("Done.");
-                            });
-                        });
-                    });
-                }
-                else {
-                    //sendDisplayKeyPairingRequest(tvContext);
-                    console.log('Error unknown device for uuid:', tvUuid);
-                }
-            });
-        }
-    }
+/// catch 404 and forwarding to error handler
+app.use(function(req, res, next) {
+    var err = new Error('Not Found');
+    err.status = 404;
+    next(err);
 });
+
+/// error handlers
+
+// development error handler
+// will print stacktrace
+if (app.get('env') === 'development') {
+    app.use(function(err, req, res, next) {
+        res.status(err.status || 500);
+        res.render('error', {
+            message: err.message,
+            error: err
+        });
+    });
+}
+
+// production error handler
+// no stacktraces leaked to user
+app.use(function(err, req, res, next) {
+    res.status(err.status || 500);
+    res.render('error', {
+        message: err.message,
+        error: {}
+    });
+});
+
+
+module.exports = app;

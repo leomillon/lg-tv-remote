@@ -1,0 +1,68 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+    <h1>{{ title }}</h1>
+    <p>Welcome to {{ title }}</p>
+    <div>
+        <button type="button" id="discoveryRequest-button">Send discovery request</button>
+        <button type="button" id="start-key-pairing-button">Start key pairing</button>
+        <button type="button" id="end-key-pairing-button">End key pairing</button>
+    </div>
+    <div>
+        <input type="text" id="cmd-input" />
+        <button type="button" id="send-cmd-button">Send cmd</button>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    {% parent %}
+    <script>
+        $(function () {
+            $('#discoveryRequest-button').on('click', function () {
+                $.ajax({
+                    url: '/tv-api/discovery'
+                })
+                .done(function (data) {
+                    console.log('Data :');
+                    console.log(data);
+                });
+            });
+
+            $('#start-key-pairing-button').on('click', function () {
+                $.ajax({
+                    url: '/tv-api/key-pairing/start'
+                })
+                .done(function (data, status) {
+                    console.log('Status:', status);
+                    console.log('Data :');
+                    console.log(data);
+                });
+            });
+
+            $('#end-key-pairing-button').on('click', function () {
+                $.ajax({
+                    url: '/tv-api/key-pairing/end'
+                })
+                .done(function (data, status) {
+                    console.log('Status:', status);
+                    console.log('Data :');
+                    console.log(data);
+                });
+            });
+
+            $('#send-cmd-button').on('click', function () {
+                var cmdValue = $('#cmd-input').val();
+                if (cmdValue != null && cmdValue.length > 0) {
+                    $.ajax({
+                        url: '/tv-api/cmd/' + cmdValue
+                    })
+                    .done(function (data, status) {
+                        console.log('Status:', status);
+                        console.log('Data :');
+                        console.log(data);
+                    });
+                }
+            });
+        });
+    </script>
+{% endblock %}
