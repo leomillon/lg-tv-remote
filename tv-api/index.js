@@ -1,13 +1,14 @@
 var BROADCAST_IP = '239.255.255.250';
 var BROADCAST_PORT = 1900;
+var DISCOVERY_DELAY = 1000;
 var DISCOVERY_REQ = 'M-SEARCH * HTTP/1.1\r\nHOST: 239.255.255.250:1900\r\nMAN: "ssdp:discover"\r\nMX: 3\r\n' +
     'ST: udap:rootservice\r\nUSER-AGENT: UDAP/2.0\r\n\r\n';
 var LOCATION_KEY = 'LOCATION';
 var KEY_PAIRING_PATH = '/udap/api/pairing';
 var CMD_PATH = '/udap/api/command';
 
+var _ = require('underscore');
 var dgram = require('dgram');
-var client = dgram.createSocket('udp4');
 var http = require("http");
 var url = require("url");
 var libxmljs = require("libxmljs");
@@ -67,7 +68,7 @@ function buildDefaultOptions(tvContext, path, method) {
     };
 }
 
-function buildDiscoveryOptions(tvContext) {
+function buildDescriptionOptions(tvContext) {
     return buildDefaultOptions(tvContext, tvContext.descriptionPath, 'GET');
 }
 
@@ -81,14 +82,18 @@ function buildCmdOptions(tvContext) {
 
 function sendDiscoveryRequest(callback) {
     var discoveryRequest = new Buffer(DISCOVERY_REQ);
+    var discoveryContainer = [];
+    var client = dgram.createSocket('udp4');
     client.bind(1901);
     client.send(discoveryRequest, 0, discoveryRequest.length, BROADCAST_PORT, BROADCAST_IP);
     client.on('message', function(response, rinfo) {
-        console.log('Response from : ' + rinfo.address + ':' + rinfo.port);
-        callback(extractData(response.toString('utf-8')));
-        client.close();
+        //console.log('Response from : ' + rinfo.address + ':' + rinfo.port);
+        discoveryContainer.push(extractData(response.toString('utf-8')));
     });
-
+    _.delay(function(callback, discoveryContainer) {
+        client.close();
+        callback(discoveryContainer);
+    }, DISCOVERY_DELAY, callback, discoveryContainer);
 }
 
 function extractData(data) {
@@ -198,42 +203,42 @@ function sendCmdRequest(tvContext, cmdValue, callback) {
     }
 }
 
+function buildDeviceFromDescription(tvContext, xmlDescription) {
+    var deviceUuid = xmlDescription.get('//uuid').text();
+    var deviceModelName = xmlDescription.get('//modelName').text();
+    var deviceType = xmlDescription.get('//deviceType').text();
+    console.log('Device model name = ' + deviceModelName);
+    console.log('Device UUID = ' + deviceUuid);
+    console.log('Device type = ' + deviceType);
+    return {
+        name: deviceModelName,
+        uuid: deviceUuid,
+        type: deviceType,
+        hostname: tvContext.hostname,
+        port: tvContext.port
+    };
+}
+
 function discoverDevices(callback) {
-    sendDiscoveryRequest(function (discoveryData) {
-        if (discoveryData != null) {
-            tvContext = buildTvContext(discoveryData);
+    sendDiscoveryRequest(function (discoveryContainer) {
+        var finalCallback = _.after(discoveryContainer.length, callback);
+        var devices = [];
+        _.each(discoveryContainer, function (discoveredDevice) {
+            //console.log(discoveredDevice);
+            tvContext = buildTvContext(discoveredDevice);
 
             if (tvContext != null) {
-                var options = buildDiscoveryOptions(tvContext);
+                var options = buildDescriptionOptions(tvContext);
                 sendHttpRequest(options, null, function (err, res) {
                     if (err) throw err;
 
                     var xmlResponse = libxmljs.parseXml(res.body);
-                    var tvUuid = xmlResponse.get('//uuid').text();
-                    var tvModelName = xmlResponse.get('//modelName').text();
-                    console.log('TV model name = ' + tvModelName);
-                    console.log('TV UUID = ' + tvUuid);
 
-                    callback(xmlResponse.toString());
-
-                    /*var knownDevice = knownDevices[tvUuid];
-
-                    if (isDefined(knownDevice)) {
-                        sendStartKeyPairingRequest(tvContext, knownDevice.pairingKey, function () {
-                            sendCmdRequest(tvContext, KEYS.PROG_LIST, function () {
-                                sendEndKeyPairingRequest(tvContext, function () {
-                                    console.log("Done.");
-                                });
-                            });
-                        });
-                    }
-                    else {
-                        //sendDisplayKeyPairingRequest(tvContext);
-                        console.log('Error unknown device for uuid:', tvUuid);
-                    }*/
+                    devices.push(buildDeviceFromDescription(tvContext, xmlResponse));
+                    finalCallback(devices);
                 });
             }
-        }
+        });
     });
 }
 

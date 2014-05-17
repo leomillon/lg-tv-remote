@@ -6,7 +6,7 @@ router.get('/discovery', function(req, res) {
     if (req.xhr) {
         tvApi.discovery(function (data) {
             console.log('Data:', data);
-            res.set('Content-Type', 'text/xml');
+            res.set('Content-Type', 'application/json');
             res.send(data);
         });
     }
