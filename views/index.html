@@ -18,25 +18,106 @@
             </ul>
         </div>
     </div>
+
+    <div class="modal fade" id="pairing-modal" tabindex="-1" role="dialog" aria-labelledby="pairingModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    <h4 class="modal-title" id="pairingModalLabel">Modal title</h4>
+                </div>
+                <div class="modal-body">
+                    <form role="form" id="pairing-key-form">
+                        <div class="form-group">
+                            <label for="pairing-key-input">Pairing key</label>
+                            <input type="text" class="form-control" id="pairing-key-input" placeholder="TV Pairing key">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" id="send-key-button">Send pairing key</button>
+                </div>
+            </div>
+        </div>
+    </div>
 {% endblock %}
 
 {% block scripts %}
     {% parent %}
     <script>
+        var currentDeviceId = null;
+
+        function getDevicePath(uuid) {
+            return '/tv-api/device/' + uuid;
+        }
+
+        function displayDiscoveredDevices(devices) {
+            var deviceListElement = $('#device-list');
+            deviceListElement.empty();
+            _.each(devices, function (device) {
+                deviceListElement.append('<li><a class="device" href="#" uuid="' + device.uuid + '">'
+                        + device.friendlyName + '</a></li>');
+            });
+        }
+
+        function displayPairingKey(uuid, callback) {
+            $.ajax({
+                url: getDevicePath(uuid) + '/display-key'
+            })
+            .done(callback);
+        }
+
+        function sendPairingKey(uuid, key, callback) {
+            if (_.isEmpty(key)) {
+                alert('Key is empty');
+            }
+            else {
+                $.ajax({
+                    url: getDevicePath(uuid) + '/start-pairing/' + key
+                })
+                .done(callback);
+            }
+        }
+
+        function pairingKeyDefined() {
+            var pairingKey = $('#pairing-key-input').val();
+            sendPairingKey(currentDeviceId, pairingKey, function (success) {
+                if (success) {
+                    $('#pairing-key-input').val('');
+                    $('#pairing-modal').modal('hide');
+                    alert('Success!');
+                }
+                else {
+                    alert('Error...');
+                }
+            });
+        }
+
         $(function () {
-            $('#discovery-button').on('click', function () {
+            $('#discovery-button').click(function () {
                 $.ajax({
                     url: '/tv-api/discovery'
                 })
                 .done(function (devices) {
                     console.log('Devices :', devices);
-                    var deviceListElement = $('#device-list');
-                    deviceListElement.empty();
-                    _.each(devices, function (device) {
-                        deviceListElement.append('<li><p>[' + device.type + '] ' + device.name + '<br>' +
-                                '<small>' + device.uuid + '</small></p></li>');
-                    });
+                    displayDiscoveredDevices(devices);
                 });
+            });
+
+            $('#device-list').on('click', '.device', function () {
+                currentDeviceId = $(this).attr('uuid');
+                displayPairingKey(currentDeviceId, function(success) {
+                    if (success) {
+                        $('#pairing-modal').modal('show');
+                    }
+                });
+            });
+
+            $('#send-key-button').click(pairingKeyDefined);
+            $('#pairing-key-form').submit(function () {
+                pairingKeyDefined();
+                event.preventDefault();
             });
         });
     </script>

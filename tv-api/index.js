@@ -14,27 +14,14 @@ var url = require("url");
 var libxmljs = require("libxmljs");
 var KEYS = require("./keys");
 
-var device = {
-    name: '47LA667S-ZB_18',
-    uuid: 'c9837a54-2d18-0812-c864-68df71c2c818',
-    type: 'TV',
-    pairingKey: '941905',
-    hostname: '192.168.1.24',
-    port: '8080'
-};
+var currentDevices = [];
 
-var knownDevices = [];
-
-knownDevices[device.uuid] = device;
-
-var tvContext = null;
-
-function isUndefined(variable) {
-    return variable === null || typeof variable === 'undefined';
+function hasNoValue(variable) {
+    return _.isNull(variable) || _.isUndefined(variable);
 }
 
-function isDefined(variable) {
-    return !isUndefined(variable);
+function hasValue(variable) {
+    return !hasNoValue(variable);
 }
 
 function buildTvContext(discoveryData) {
@@ -44,21 +31,21 @@ function buildTvContext(discoveryData) {
         if (descriptionLocation != null) {
             var descriptionUrl = url.parse(descriptionLocation);
 
-            var tvContext = {};
-            tvContext.host = descriptionUrl.host;
-            tvContext.hostname = descriptionUrl.hostname;
-            tvContext.port = descriptionUrl.port;
-            tvContext.descriptionPath = descriptionUrl.path;
-            return tvContext;
+            return {
+                "host": descriptionUrl.host,
+                "hostname": descriptionUrl.hostname,
+                "port": descriptionUrl.port,
+                "descriptionPath": descriptionUrl.path
+            }
         }
     }
     return null;
 }
 
-function buildDefaultOptions(tvContext, path, method) {
+function buildDefaultOptions(device, path, method) {
     return {
-        host: tvContext.hostname,
-        port: tvContext.port,
+        host: device.hostname,
+        port: device.port,
         path: path,
         method: method,
         headers: {
@@ -68,16 +55,16 @@ function buildDefaultOptions(tvContext, path, method) {
     };
 }
 
-function buildDescriptionOptions(tvContext) {
-    return buildDefaultOptions(tvContext, tvContext.descriptionPath, 'GET');
+function buildDescriptionOptions(device) {
+    return buildDefaultOptions(device, device.descriptionPath, 'GET');
 }
 
-function buildKeyPairingOptions(tvContext) {
-    return buildDefaultOptions(tvContext, KEY_PAIRING_PATH, 'POST');
+function buildKeyPairingOptions(device) {
+    return buildDefaultOptions(device, KEY_PAIRING_PATH, 'POST');
 }
 
-function buildCmdOptions(tvContext) {
-    return buildDefaultOptions(tvContext, CMD_PATH, 'POST');
+function buildCmdOptions(device) {
+    return buildDefaultOptions(device, CMD_PATH, 'POST');
 }
 
 function sendDiscoveryRequest(callback) {
@@ -143,7 +130,7 @@ function sendHttpRequest(options, body, callback) {
         callback(e);
     });
 
-    if (isDefined(body)) {
+    if (hasValue(body)) {
         req.write(body);
     }
 
@@ -156,13 +143,13 @@ function buildApiXml(apiType, apiName, param, port) {
     var apiElement = doc.node('envelope')
         .node('api').attr('type', apiType);
 
-    if (isDefined(apiName)) {
+    if (hasValue(apiName)) {
         apiElement.node('name', apiName);
     }
-    if (isDefined(param)) {
+    if (hasValue(param)) {
         apiElement.node('value', String(param)); // Value needs to be a String
     }
-    if (isDefined(port)) {
+    if (hasValue(port)) {
         apiElement.node('port', String(port));
     }
 
@@ -171,34 +158,38 @@ function buildApiXml(apiType, apiName, param, port) {
     return doc;
 }
 
-function sendDisplayKeyPairingRequest(tvContext) {
-    if (tvContext != null) {
+function getDevice(uuid) {
+    return currentDevices[uuid];
+}
+
+function sendDisplayKeyPairingRequest(device, callback) {
+    if (!_.isNull(device)) {
         console.log('\n\n==========DISPLAY KEY PAIRING==============');
         var body = buildApiXml('pairing', 'showKey').toString();
-        sendHttpRequest(buildKeyPairingOptions(tvContext), body, callback);
+        sendHttpRequest(buildKeyPairingOptions(device), body, callback);
     }
 }
 
-function sendStartKeyPairingRequest(tvContext, keyPairingValue, callback) {
-    if (tvContext != null) {
+function sendStartKeyPairingRequest(device, keyPairingValue, callback) {
+    if (!_.isNull(device)) {
         console.log('\n\n==========SEND START KEY PAIRING==============');
-        var body = buildApiXml('pairing', 'hello', keyPairingValue, tvContext.port).toString();
-        sendHttpRequest(buildKeyPairingOptions(tvContext), body, callback);
+        var body = buildApiXml('pairing', 'hello', keyPairingValue, device.port).toString();
+        sendHttpRequest(buildKeyPairingOptions(device), body, callback);
     }
 }
-function sendEndKeyPairingRequest(tvContext, callback) {
-    if (tvContext != null) {
+function sendEndKeyPairingRequest(device, callback) {
+    if (!_.isNull(device)) {
         console.log('\n\n==========SEND END KEY PAIRING==============');
-        var body = buildApiXml('pairing', 'byebye', null, tvContext.port).toString();
-        sendHttpRequest(buildKeyPairingOptions(tvContext), body, callback);
+        var body = buildApiXml('pairing', 'byebye', null, device.port).toString();
+        sendHttpRequest(buildKeyPairingOptions(device), body, callback);
     }
 }
 
-function sendCmdRequest(tvContext, cmdValue, callback) {
-    if (tvContext != null) {
+function sendCmdRequest(device, cmdValue, callback) {
+    if (!_.isNull(device)) {
         console.log('\n\n==========SEND COMMAND==============');
         var body = buildApiXml('command', 'HandleKeyInput', cmdValue).toString();
-        var options = buildCmdOptions(tvContext);
+        var options = buildCmdOptions(device);
         sendHttpRequest(options, body, callback);
     }
 }
@@ -206,64 +197,75 @@ function sendCmdRequest(tvContext, cmdValue, callback) {
 function buildDeviceFromDescription(tvContext, xmlDescription) {
     var deviceUuid = xmlDescription.get('//uuid').text();
     var deviceModelName = xmlDescription.get('//modelName').text();
+    var deviceFriendlyName = xmlDescription.get('//friendlyName').text();
     var deviceType = xmlDescription.get('//deviceType').text();
     console.log('Device model name = ' + deviceModelName);
     console.log('Device UUID = ' + deviceUuid);
-    console.log('Device type = ' + deviceType);
     return {
-        name: deviceModelName,
-        uuid: deviceUuid,
-        type: deviceType,
-        hostname: tvContext.hostname,
-        port: tvContext.port
+        "name": deviceModelName,
+        "friendlyName": deviceFriendlyName,
+        "uuid": deviceUuid,
+        "type": deviceType,
+        "hostname": tvContext.hostname,
+        "port": tvContext.port
     };
 }
 
 function discoverDevices(callback) {
     sendDiscoveryRequest(function (discoveryContainer) {
         var finalCallback = _.after(discoveryContainer.length, callback);
+        currentDevices = [];
         var devices = [];
         _.each(discoveryContainer, function (discoveredDevice) {
             //console.log(discoveredDevice);
-            tvContext = buildTvContext(discoveredDevice);
+            var tvContext = buildTvContext(discoveredDevice);
 
-            if (tvContext != null) {
+            if (!_.isNull(tvContext)) {
                 var options = buildDescriptionOptions(tvContext);
                 sendHttpRequest(options, null, function (err, res) {
-                    if (err) throw err;
+                    if (_.isNull(err)) {
+                        var xmlResponse = libxmljs.parseXml(res.body);
 
-                    var xmlResponse = libxmljs.parseXml(res.body);
+                        var discoveredDevice = buildDeviceFromDescription(tvContext, xmlResponse);
+                        currentDevices[discoveredDevice.uuid] = discoveredDevice;
+                        devices.push(discoveredDevice);
+                    }
 
-                    devices.push(buildDeviceFromDescription(tvContext, xmlResponse));
                     finalCallback(devices);
                 });
+            }
+            else {
+                finalCallback(devices);
             }
         });
     });
 }
 
-function getFavoriteDevice() {
-    return device;
-}
-
 module.exports.discovery = discoverDevices;
 
-module.exports.startKeyPairing = function (callback) {
-    var device = getFavoriteDevice();
-    sendStartKeyPairingRequest(device, device.pairingKey, function (err, res) {
+module.exports.displayKey = function (uuid, callback) {
+    var device = getDevice(uuid);
+    sendDisplayKeyPairingRequest(device, function (err, res) {
         callback(err, res);
     });
 };
 
-module.exports.endKeyPairing = function (callback) {
-    var device = getFavoriteDevice();
+module.exports.startPairing = function (uuid, key, callback) {
+    var device = getDevice(uuid);
+    sendStartKeyPairingRequest(device, key, function (err, res) {
+        callback(err, res);
+    });
+};
+
+module.exports.endPairing = function (uuid, callback) {
+    var device = getDevice(uuid);
     sendEndKeyPairingRequest(device, function (err, res) {
         callback(err, res);
     });
 };
 
-module.exports.sendCmd = function (cmd, callback) {
-    var device = getFavoriteDevice();
+module.exports.sendCmd = function (uuid, cmd, callback) {
+    var device = getDevice(uuid);
     sendCmdRequest(device, cmd, function (err, res) {
         callback(err, res);
     });

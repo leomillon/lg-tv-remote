@@ -12,7 +12,7 @@ router.get('/discovery', function(req, res) {
     }
 });
 
-function simpleActivationCallback (res, err, data) {
+function defaultResponse (res, err, data) {
     var status = data.statusCode;
     if (err) {
         status = 500;
@@ -20,27 +20,44 @@ function simpleActivationCallback (res, err, data) {
     res.send(status, data.body);
 }
 
-router.get('/key-pairing/start', function(req, res) {
+router.get('/device/:uuid/display-key', function(req, res) {
     if (req.xhr) {
-        tvApi.startKeyPairing(function (err, data) {
-            simpleActivationCallback(res, err, data);
+        var uuid = req.params.uuid;
+        tvApi.displayKey(uuid, function (err, data) {
+            data.body = err === null;
+            defaultResponse(res, err, data);
         });
     }
 });
 
-router.get('/key-pairing/end', function(req, res) {
+router.get('/device/:uuid/start-pairing/:key', function(req, res) {
     if (req.xhr) {
-        tvApi.endKeyPairing(function (err, data) {
-            simpleActivationCallback(res, err, data);
+        var uuid = req.params.uuid;
+        var key = req.params.key;
+        tvApi.startPairing(uuid, key, function (err, data) {
+            data.body = err === null;
+            defaultResponse(res, err, data);
         });
     }
 });
 
-router.get('/cmd/:value', function(req, res) {
+router.get('/device/:uuid/end-pairing/', function(req, res) {
     if (req.xhr) {
-        var cmdValue = req.params.value;
-        tvApi.sendCmd(cmdValue, function (err, data) {
-            simpleActivationCallback(res, err, data);
+        var uuid = req.params.uuid;
+        tvApi.endPairing(uuid, function (err, data) {
+            data.body = err === null;
+            defaultResponse(res, err, data);
+        });
+    }
+});
+
+router.get('/device/:uuid/cmd/:cmdValue', function(req, res) {
+    if (req.xhr) {
+        var uuid = req.params.uuid;
+        var cmdValue = req.params.cmdValue;
+        tvApi.sendCmd(uuid, cmdValue, function (err, data) {
+            data.body = err === null;
+            defaultResponse(res, err, data);
         });
     }
 });
