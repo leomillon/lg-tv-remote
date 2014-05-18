@@ -1,5 +1,6 @@
 var express = require('express');
 var router = express.Router();
+var _ = require('underscore');
 var tvApi = require('../tv-api');
 
 router.get('/discovery', function(req, res) {
@@ -9,6 +10,9 @@ router.get('/discovery', function(req, res) {
             res.set('Content-Type', 'application/json');
             res.send(data);
         });
+    }
+    else {
+        errorResponse(res);
     }
 });
 
@@ -20,45 +24,61 @@ function defaultResponse (res, err, data) {
     res.send(status, data.body);
 }
 
-router.get('/device/:uuid/display-key', function(req, res) {
-    if (req.xhr) {
-        var uuid = req.params.uuid;
+function errorResponse(res) {
+    res.send(500, null);
+}
+
+router.post('/device/display-key', function(req, res) {
+    var uuid = req.body.deviceId;
+    if (req.xhr && uuid) {
         tvApi.displayKey(uuid, function (err, data) {
-            data.body = err === null;
+            data.body = _.isNull(err);
             defaultResponse(res, err, data);
         });
     }
+    else {
+        errorResponse(res);
+    }
 });
 
-router.get('/device/:uuid/start-pairing/:key', function(req, res) {
-    if (req.xhr) {
-        var uuid = req.params.uuid;
-        var key = req.params.key;
+router.post('/device/start-pairing', function(req, res) {
+    var uuid = req.body.deviceId;
+    var key = req.body.pairingKey;
+    if (req.xhr && uuid && key) {
         tvApi.startPairing(uuid, key, function (err, data) {
-            data.body = err === null;
+            data.body = _.isNull(err);
             defaultResponse(res, err, data);
         });
     }
+    else {
+        errorResponse(res);
+    }
 });
 
-router.get('/device/:uuid/end-pairing/', function(req, res) {
-    if (req.xhr) {
-        var uuid = req.params.uuid;
+router.post('/device/end-pairing/', function(req, res) {
+    var uuid = req.body.deviceId;
+    if (req.xhr && uuid) {
         tvApi.endPairing(uuid, function (err, data) {
-            data.body = err === null;
+            data.body = _.isNull(err);
             defaultResponse(res, err, data);
         });
     }
+    else {
+        errorResponse(res);
+    }
 });
 
-router.get('/device/:uuid/cmd/:cmdValue', function(req, res) {
-    if (req.xhr) {
-        var uuid = req.params.uuid;
-        var cmdValue = req.params.cmdValue;
+router.post('/device/cmd', function(req, res) {
+    var uuid = req.body.deviceId;
+    var cmdValue = req.body.cmdValue;
+    if (req.xhr && uuid && cmdValue) {
         tvApi.sendCmd(uuid, cmdValue, function (err, data) {
-            data.body = err === null;
+            data.body = _.isNull(err);
             defaultResponse(res, err, data);
         });
+    }
+    else {
+        errorResponse(res);
     }
 });
 

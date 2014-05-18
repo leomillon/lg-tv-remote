@@ -14,7 +14,7 @@
     <div class="row" id="device-list-container">
         <div class="col-xs-12">
             <ul id="device-list">
-
+                <!-- devices -->
             </ul>
         </div>
     </div>
@@ -48,8 +48,8 @@
     <script>
         var currentDeviceId = null;
 
-        function getDevicePath(uuid) {
-            return '/tv-api/device/' + uuid;
+        function getDevicePath() {
+            return '/tv-api/device';
         }
 
         function displayDiscoveredDevices(devices) {
@@ -62,9 +62,7 @@
         }
 
         function displayPairingKey(uuid, callback) {
-            $.ajax({
-                url: getDevicePath(uuid) + '/display-key'
-            })
+            $.post(getDevicePath() + '/display-key', { deviceId: uuid })
             .done(callback);
         }
 
@@ -73,9 +71,7 @@
                 alert('Key is empty');
             }
             else {
-                $.ajax({
-                    url: getDevicePath(uuid) + '/start-pairing/' + key
-                })
+                $.post(getDevicePath() + '/start-pairing', { deviceId: uuid, pairingKey: key })
                 .done(callback);
             }
         }
