@@ -1,14 +1,23 @@
 {% extends 'layout.html' %}
 
 {% block content %}
-    <h1>{{ title }}</h1>
-    <div>
-        <button type="button" id="discovery-button">Discover devices</button>
+    <div class="row">
+        <div class="col-xs-12">
+            <h1>{{ title }}</h1>
+        </div>
     </div>
-    <div id="device-list-container">
-        <ul id="device-list">
+    <div class="row">
+        <div class="col-xs-12">
+            <button id="discovery-button" type="button" class="btn btn-default">Discover devices</button>
+        </div>
+    </div>
+    <div class="row" id="device-list-container">
+        <div class="col-xs-12">
+            <ul id="device-list">
 
-        </ul>
+            </ul>
+        </div>
+    </div>
     </div>
 {% endblock %}
 
