@@ -1,0 +1,87 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-xs-12 text-center">
+            <button type="button" class="btn btn-default" id="end-pairing">Exit</button>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-xs-4 text-center">
+            <button type="button" class="btn btn-default controller-key" key-value="3">1</button>
+        </div>
+        <div class="col-xs-4 text-center">
+            <button type="button" class="btn btn-default controller-key" key-value="4">2</button>
+        </div>
+        <div class="col-xs-4 text-center">
+            <button type="button" class="btn btn-default controller-key" key-value="5">3</button>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-xs-4 text-center">
+            <button type="button" class="btn btn-default controller-key" key-value="6">4</button>
+        </div>
+        <div class="col-xs-4 text-center">
+            <button type="button" class="btn btn-default controller-key" key-value="7">5</button>
+        </div>
+        <div class="col-xs-4 text-center">
+            <button type="button" class="btn btn-default controller-key" key-value="8">6</button>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-xs-4 text-center">
+            <button type="button" class="btn btn-default controller-key" key-value="9">7</button>
+        </div>
+        <div class="col-xs-4 text-center">
+            <button type="button" class="btn btn-default controller-key" key-value="10">8</button>
+        </div>
+        <div class="col-xs-4 text-center">
+            <button type="button" class="btn btn-default controller-key" key-value="11">9</button>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-xs-12 text-center">
+            <button type="button" class="btn btn-default controller-key" key-value="2">0</button>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    {% parent %}
+    <script>
+        function getDevicePath() {
+            return '/tv-api/device';
+        }
+
+        function sendCmd(cmd, callback) {
+            $.post(getDevicePath() + '/cmd', { cmdValue: cmd })
+            .done(callback);
+        }
+
+        function endPairing(callback) {
+            $.post(getDevicePath() + '/end-pairing')
+            .done(callback);
+        }
+
+        $(function () {
+            $('.controller-key').click(function () {
+                var cmd = $(this).attr('key-value');
+                sendCmd(cmd, function(success) {
+                    if (!success) {
+                        console.error('An error occured for cmd:', cmd);
+                    }
+                });
+            });
+
+            $('#end-pairing').click(function () {
+                endPairing(function(success) {
+                    if (success) {
+                        window.location.href = "/";
+                    } else {
+                        console.error('An error occured when trying to end pairing');
+                    }
+                });
+            });
+        });
+    </script>
+{% endblock %}

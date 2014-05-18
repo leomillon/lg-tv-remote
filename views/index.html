@@ -1,42 +1,44 @@
 {% extends 'layout.html' %}
 
 {% block content %}
-    <div class="row">
-        <div class="col-xs-12">
-            <h1>{{ title }}</h1>
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-xs-12">
+                <h1>{{ title }}</h1>
+            </div>
         </div>
-    </div>
-    <div class="row">
-        <div class="col-xs-12">
-            <button id="discovery-button" type="button" class="btn btn-default">Discover devices</button>
+        <div class="row">
+            <div class="col-xs-12">
+                <button id="discovery-button" type="button" class="btn btn-default">Discover devices</button>
+            </div>
         </div>
-    </div>
-    <div class="row" id="device-list-container">
-        <div class="col-xs-12">
-            <ul id="device-list">
-                <!-- devices -->
-            </ul>
+        <div class="row" id="device-list-container">
+            <div class="col-xs-12">
+                <ul id="device-list">
+                    <!-- devices -->
+                </ul>
+            </div>
         </div>
-    </div>
 
-    <div class="modal fade" id="pairing-modal" tabindex="-1" role="dialog" aria-labelledby="pairingModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                    <h4 class="modal-title" id="pairingModalLabel">Device pairing</h4>
-                </div>
-                <div class="modal-body">
-                    <form role="form" id="pairing-key-form">
-                        <div class="form-group">
-                            <label for="pairing-key-input">Pairing key</label>
-                            <input type="text" class="form-control" id="pairing-key-input" placeholder="TV Pairing key">
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-primary" id="send-key-button">Send pairing key</button>
+        <div class="modal fade" id="pairing-modal" tabindex="-1" role="dialog" aria-labelledby="pairingModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                        <h4 class="modal-title" id="pairingModalLabel">Device pairing</h4>
+                    </div>
+                    <div class="modal-body">
+                        <form role="form" id="pairing-key-form">
+                            <div class="form-group">
+                                <label for="pairing-key-input">Pairing key</label>
+                                <input type="text" class="form-control" id="pairing-key-input" placeholder="TV Pairing key">
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-primary" id="send-key-button" data-loading-text="Sending...">Send pairing key</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -67,11 +69,16 @@
         }
 
         function sendPairingKey(uuid, key, callback) {
+            var sendBtn = $('#send-key-button');
             if (_.isEmpty(key)) {
                 alert('Key is empty');
             }
             else {
+                sendBtn.button('loading');
                 $.post(getDevicePath() + '/start-pairing', { deviceId: uuid, pairingKey: key })
+                .always(function () {
+                    sendBtn.button('reset');
+                })
                 .done(callback);
             }
         }
@@ -82,7 +89,7 @@
                 if (success) {
                     $('#pairing-key-input').val('');
                     $('#pairing-modal').modal('hide');
-                    alert('Success!');
+                    window.location.href = '/controller';
                 }
                 else {
                     alert('Error...');

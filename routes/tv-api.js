@@ -16,7 +16,7 @@ router.get('/discovery', function(req, res) {
     }
 });
 
-function defaultResponse (res, err, data) {
+function defaultResponse(res, err, data) {
     var status = data.statusCode;
     if (err) {
         status = 500;
@@ -46,7 +46,13 @@ router.post('/device/start-pairing', function(req, res) {
     var key = req.body.pairingKey;
     if (req.xhr && uuid && key) {
         tvApi.startPairing(uuid, key, function (err, data) {
-            data.body = _.isNull(err);
+            var success = _.isNull(err);
+
+            if (success) {
+                req.session.deviceId = uuid;
+            }
+
+            data.body = success;
             defaultResponse(res, err, data);
         });
     }
@@ -55,8 +61,8 @@ router.post('/device/start-pairing', function(req, res) {
     }
 });
 
-router.post('/device/end-pairing/', function(req, res) {
-    var uuid = req.body.deviceId;
+router.post('/device/end-pairing', function(req, res) {
+    var uuid = req.session.deviceId;
     if (req.xhr && uuid) {
         tvApi.endPairing(uuid, function (err, data) {
             data.body = _.isNull(err);
@@ -69,7 +75,7 @@ router.post('/device/end-pairing/', function(req, res) {
 });
 
 router.post('/device/cmd', function(req, res) {
-    var uuid = req.body.deviceId;
+    var uuid = req.session.deviceId;
     var cmdValue = req.body.cmdValue;
     if (req.xhr && uuid && cmdValue) {
         tvApi.sendCmd(uuid, cmdValue, function (err, data) {
