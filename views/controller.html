@@ -1,47 +1,80 @@
 {% extends 'layout.html' %}
 
 {% block content %}
-    <div class="row">
-        <div class="col-xs-12 text-center">
-            <button type="button" class="btn btn-default" id="end-pairing">Exit</button>
+    <div class="container-fluid">
+        <!-- Navbar -->
+        <div class="navbar navbar-default" role="navigation">
+            <div class="container-fluid">
+                <div class="navbar-header">
+                    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                        <span class="sr-only">Toggle navigation</span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                    <a class="navbar-brand" href="#">Controller</a>
+                </div>
+                <div class="navbar-collapse collapse">
+                    <ul class="nav navbar-nav navbar-right">
+                        <li><a href="#" id="end-pairing">Exit</a></li>
+                    </ul>
+                </div>
+            </div>
         </div>
-    </div>
-    <div class="row">
-        <div class="col-xs-4 text-center">
-            <button type="button" class="btn btn-default controller-key" key-value="3">1</button>
+
+        <div class="row">
+            <div class="col-xs-12">
+                <div class="margin-bt">
+                    <div class="btn-group btn-group-justified">
+                        <a class="btn btn-default controller-key" href="#" key-value="3">1</a>
+                        <a class="btn btn-default controller-key" href="#" key-value="4">2</a>
+                        <a class="btn btn-default controller-key" href="#" key-value="5">3</a>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="col-xs-4 text-center">
-            <button type="button" class="btn btn-default controller-key" key-value="4">2</button>
+        <div class="row">
+            <div class="col-xs-12">
+                <div class="margin-bt">
+                    <div class="btn-group btn-group-justified">
+                        <a class="btn btn-default controller-key" href="#" key-value="6">4</a>
+                        <a class="btn btn-default controller-key" href="#" key-value="7">5</a>
+                        <a class="btn btn-default controller-key" href="#" key-value="8">6</a>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="col-xs-4 text-center">
-            <button type="button" class="btn btn-default controller-key" key-value="5">3</button>
+        <div class="row">
+            <div class="col-xs-12">
+                <div class="margin-bt">
+                    <div class="btn-group btn-group-justified">
+                        <a class="btn btn-default controller-key" href="#" key-value="9">7</a>
+                        <a class="btn btn-default controller-key" href="#" key-value="10">8</a>
+                        <a class="btn btn-default controller-key" href="#" key-value="11">9</a>
+                    </div>
+                </div>
+            </div>
         </div>
-    </div>
-    <div class="row">
-        <div class="col-xs-4 text-center">
-            <button type="button" class="btn btn-default controller-key" key-value="6">4</button>
+        <div class="row">
+            <div class="col-xs-4 col-xs-offset-4">
+                <button type="button" class="btn btn-default btn-block controller-key" key-value="2">0</button>
+            </div>
         </div>
-        <div class="col-xs-4 text-center">
-            <button type="button" class="btn btn-default controller-key" key-value="7">5</button>
-        </div>
-        <div class="col-xs-4 text-center">
-            <button type="button" class="btn btn-default controller-key" key-value="8">6</button>
-        </div>
-    </div>
-    <div class="row">
-        <div class="col-xs-4 text-center">
-            <button type="button" class="btn btn-default controller-key" key-value="9">7</button>
-        </div>
-        <div class="col-xs-4 text-center">
-            <button type="button" class="btn btn-default controller-key" key-value="10">8</button>
-        </div>
-        <div class="col-xs-4 text-center">
-            <button type="button" class="btn btn-default controller-key" key-value="11">9</button>
-        </div>
-    </div>
-    <div class="row">
-        <div class="col-xs-12 text-center">
-            <button type="button" class="btn btn-default controller-key" key-value="2">0</button>
+        <div class="row">
+            <div class="col-xs-4">
+                <div class="btn-group-vertical btn-block">
+                    <a class="btn btn-default controller-key" href="#" title="Volume up" key-value="24"><i class="fa fa-volume-up"></i></a>
+                    <a class="btn btn-default controller-key" href="#" title="Volume down" key-value="25"><i class="fa fa-volume-down"></i></a>
+                    <a class="btn btn-default controller-key" href="#" title="Mute" key-value="26"><i class="fa fa-volume-off"></i></a>
+                </div>
+            </div>
+            <div class="col-xs-4 col-xs-offset-4">
+                <div class="btn-group-vertical btn-block">
+                    <a class="btn btn-default controller-key" href="#" title="Channel up" key-value="27">P+</a>
+                    <a class="btn btn-default controller-key" href="#" title="Channel down" key-value="28">P-</a>
+                    <a class="btn btn-default controller-key" href="#" title="Channel list" key-value="50"><i class="fa fa-list"></i></a>
+                </div>
+            </div>
         </div>
     </div>
 {% endblock %}
@@ -71,6 +104,7 @@
                         console.error('An error occured for cmd:', cmd);
                     }
                 });
+                event.preventDefault();
             });
 
             $('#end-pairing').click(function () {
@@ -81,6 +115,7 @@
                         console.error('An error occured when trying to end pairing');
                     }
                 });
+                event.preventDefault();
             });
         });
     </script>

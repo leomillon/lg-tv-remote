@@ -65,7 +65,14 @@ router.post('/device/end-pairing', function(req, res) {
     var uuid = req.session.deviceId;
     if (req.xhr && uuid) {
         tvApi.endPairing(uuid, function (err, data) {
-            data.body = _.isNull(err);
+            var success = _.isNull(err);
+
+            if (success) {
+                // clear the current device id in session
+                req.session.deviceId = null;
+            }
+
+            data.body = success;
             defaultResponse(res, err, data);
         });
     }
