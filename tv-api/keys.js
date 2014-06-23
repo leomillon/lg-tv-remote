@@ -1,16 +1,16 @@
 module.exports = {
     POWER: 1,
     NUMBER: {
-        0: 2,
-        1: 3,
-        2: 4,
-        3: 5,
-        4: 6,
-        5: 7,
-        6: 8,
-        7: 9,
-        8: 10,
-        9: 11
+        ZERO: 2,
+        ONE: 3,
+        TWO: 4,
+        TREE: 5,
+        FOUR: 6,
+        FIVE: 7,
+        SIX: 8,
+        SEVEN: 9,
+        HEIGHT: 10,
+        NINE: 11
     },
     DIRECTION: {
         UP: 12,

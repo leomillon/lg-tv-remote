@@ -1,5 +1,6 @@
 var express = require('express');
 var router = express.Router();
+var KEYS = require("../tv-api/keys");
 
 /* GET home page */
 router.get('/', function(req, res) {
@@ -16,7 +17,7 @@ router.get('/', function(req, res) {
 router.get('/controller', function(req, res) {
     var deviceId = req.session.deviceId;
     if (deviceId) {
-        res.render('controller', { deviceId: deviceId });
+        res.render('controller', { deviceId: deviceId, KEYS: KEYS });
     }
     else {
         res.redirect('/');
