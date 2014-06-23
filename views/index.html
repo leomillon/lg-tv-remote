@@ -58,7 +58,7 @@
             var deviceListElement = $('#device-list');
             deviceListElement.empty();
             _.each(devices, function (device) {
-                deviceListElement.append('<li><a class="device" href="#" uuid="' + device.uuid + '">'
+                deviceListElement.append('<li><a class="device" href="#" data-uuid="' + device.uuid + '">'
                         + device.friendlyName + '</a></li>');
             });
         }
@@ -109,7 +109,7 @@
             });
 
             $('#device-list').on('click', '.device', function () {
-                currentDeviceId = $(this).attr('uuid');
+                currentDeviceId = $(this).attr('data-uuid');
                 displayPairingKey(currentDeviceId, function(success) {
                     if (success) {
                         $('#pairing-modal').modal('show');

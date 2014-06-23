@@ -26,9 +26,9 @@
             <div class="col-xs-12">
                 <div class="margin-bt">
                     <div class="btn-group btn-group-justified">
-                        <a class="btn btn-default controller-key" href="#" key-value="3">1</a>
-                        <a class="btn btn-default controller-key" href="#" key-value="4">2</a>
-                        <a class="btn btn-default controller-key" href="#" key-value="5">3</a>
+                        <a class="btn btn-default controller-key" href="#" data-key-value="3">1</a>
+                        <a class="btn btn-default controller-key" href="#" data-key-value="4">2</a>
+                        <a class="btn btn-default controller-key" href="#" data-key-value="5">3</a>
                     </div>
                 </div>
             </div>
@@ -37,9 +37,9 @@
             <div class="col-xs-12">
                 <div class="margin-bt">
                     <div class="btn-group btn-group-justified">
-                        <a class="btn btn-default controller-key" href="#" key-value="6">4</a>
-                        <a class="btn btn-default controller-key" href="#" key-value="7">5</a>
-                        <a class="btn btn-default controller-key" href="#" key-value="8">6</a>
+                        <a class="btn btn-default controller-key" href="#" data-key-value="6">4</a>
+                        <a class="btn btn-default controller-key" href="#" data-key-value="7">5</a>
+                        <a class="btn btn-default controller-key" href="#" data-key-value="8">6</a>
                     </div>
                 </div>
             </div>
@@ -48,31 +48,31 @@
             <div class="col-xs-12">
                 <div class="margin-bt">
                     <div class="btn-group btn-group-justified">
-                        <a class="btn btn-default controller-key" href="#" key-value="9">7</a>
-                        <a class="btn btn-default controller-key" href="#" key-value="10">8</a>
-                        <a class="btn btn-default controller-key" href="#" key-value="11">9</a>
+                        <a class="btn btn-default controller-key" href="#" data-key-value="9">7</a>
+                        <a class="btn btn-default controller-key" href="#" data-key-value="10">8</a>
+                        <a class="btn btn-default controller-key" href="#" data-key-value="11">9</a>
                     </div>
                 </div>
             </div>
         </div>
         <div class="row">
             <div class="col-xs-4 col-xs-offset-4">
-                <button type="button" class="btn btn-default btn-block controller-key" key-value="2">0</button>
+                <button type="button" class="btn btn-default btn-block controller-key" data-key-value="2">0</button>
             </div>
         </div>
         <div class="row">
             <div class="col-xs-4">
                 <div class="btn-group-vertical btn-block">
-                    <a class="btn btn-default controller-key" href="#" title="Volume up" key-value="24"><i class="fa fa-volume-up"></i></a>
-                    <a class="btn btn-default controller-key" href="#" title="Volume down" key-value="25"><i class="fa fa-volume-down"></i></a>
-                    <a class="btn btn-default controller-key" href="#" title="Mute" key-value="26"><i class="fa fa-volume-off"></i></a>
+                    <a class="btn btn-default controller-key" href="#" title="Volume up" data-key-value="24"><i class="fa fa-volume-up"></i></a>
+                    <a class="btn btn-default controller-key" href="#" title="Volume down" data-key-value="25"><i class="fa fa-volume-down"></i></a>
+                    <a class="btn btn-default controller-key" href="#" title="Mute" data-key-value="26"><i class="fa fa-volume-off"></i></a>
                 </div>
             </div>
             <div class="col-xs-4 col-xs-offset-4">
                 <div class="btn-group-vertical btn-block">
-                    <a class="btn btn-default controller-key" href="#" title="Channel up" key-value="27">P+</a>
-                    <a class="btn btn-default controller-key" href="#" title="Channel down" key-value="28">P-</a>
-                    <a class="btn btn-default controller-key" href="#" title="Channel list" key-value="50"><i class="fa fa-list"></i></a>
+                    <a class="btn btn-default controller-key" href="#" title="Channel up" data-key-value="27">P+</a>
+                    <a class="btn btn-default controller-key" href="#" title="Channel down" data-key-value="28">P-</a>
+                    <a class="btn btn-default controller-key" href="#" title="Channel list" data-key-value="50"><i class="fa fa-list"></i></a>
                 </div>
             </div>
         </div>
@@ -98,7 +98,7 @@
 
         $(function () {
             $('.controller-key').click(function () {
-                var cmd = $(this).attr('key-value');
+                var cmd = $(this).attr('data-key-value');
                 sendCmd(cmd, function(success) {
                     if (!success) {
                         console.error('An error occured for cmd:', cmd);
