@@ -3,7 +3,13 @@ var router = express.Router();
 
 /* GET home page */
 router.get('/', function(req, res) {
-  res.render('index', { title: 'LG TV Remote' });
+    var deviceId = req.session.deviceId;
+    if (deviceId) {
+        res.redirect('/controller');
+    }
+    else {
+        res.render('index', { title: 'LG TV Remote' });
+    }
 });
 
 /* GET controller page */
