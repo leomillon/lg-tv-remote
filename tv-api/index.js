@@ -12,7 +12,6 @@ var dgram = require('dgram');
 var http = require("http");
 var url = require("url");
 var libxmljs = require("libxmljs");
-var KEYS = require("./keys");
 
 var currentDevices = [];
 
