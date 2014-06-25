@@ -13,7 +13,7 @@ var http = require("http");
 var url = require("url");
 var libxmljs = require("libxmljs");
 
-var currentDevices = [];
+var knownDevices = [];
 
 function hasNoValue(variable) {
     return _.isNull(variable) || _.isUndefined(variable);
@@ -158,7 +158,15 @@ function buildApiXml(apiType, apiName, param, port) {
 }
 
 function getDevice(uuid) {
-    return currentDevices[uuid];
+    return knownDevices[uuid];
+}
+
+function registerDevice(device) {
+    return knownDevices[device.uuid] = device;
+}
+
+function isKnownDevice(uuid) {
+    return !_.isUndefined(getDevice(uuid));
 }
 
 function sendDisplayKeyPairingRequest(device, callback) {
@@ -206,14 +214,36 @@ function buildDeviceFromDescription(tvContext, xmlDescription) {
         "uuid": deviceUuid,
         "type": deviceType,
         "hostname": tvContext.hostname,
-        "port": tvContext.port
+        "port": tvContext.port,
+        "pairingKey": null
     };
+}
+
+function updateDevice(newDevice) {
+    var uuid = newDevice.uuid;
+    var knownDevice = getDevice(uuid);
+    if (_.isUndefined(knownDevice)) {
+        knownDevices.push(newDevice);
+    }
+    else {
+        newDevice.pairingKey = knownDevice.pairingKey;
+        registerDevice(newDevice);
+    }
+    return newDevice;
+}
+
+function updatePairingKey(device, pairingKey) {
+    if (!_.isUndefined(device)) {
+        device.pairingKey = pairingKey;
+    }
+    else {
+        console.error("Unable to save pairing key on an undefined device");
+    }
 }
 
 function discoverDevices(callback) {
     sendDiscoveryRequest(function (discoveryContainer) {
         var finalCallback = _.after(discoveryContainer.length, callback);
-        currentDevices = [];
         var devices = [];
         _.each(discoveryContainer, function (discoveredDevice) {
             //console.log(discoveredDevice);
@@ -226,8 +256,8 @@ function discoverDevices(callback) {
                         var xmlResponse = libxmljs.parseXml(res.body);
 
                         var discoveredDevice = buildDeviceFromDescription(tvContext, xmlResponse);
-                        currentDevices[discoveredDevice.uuid] = discoveredDevice;
-                        devices.push(discoveredDevice);
+                        var updatedDevice = updateDevice(discoveredDevice);
+                        devices.push(updatedDevice);
                     }
 
                     finalCallback(devices);
@@ -242,6 +272,10 @@ function discoverDevices(callback) {
 
 module.exports.discovery = discoverDevices;
 
+module.exports.isKnownDevice = function(uuid, callback) {
+    callback(isKnownDevice(uuid));
+};
+
 module.exports.displayKey = function (uuid, callback) {
     var device = getDevice(uuid);
     sendDisplayKeyPairingRequest(device, function (err, res) {
@@ -252,6 +286,9 @@ module.exports.displayKey = function (uuid, callback) {
 module.exports.startPairing = function (uuid, key, callback) {
     var device = getDevice(uuid);
     sendStartKeyPairingRequest(device, key, function (err, res) {
+        if (_.isNull(err)) {
+            updatePairingKey(device, key);
+        }
         callback(err, res);
     });
 };
