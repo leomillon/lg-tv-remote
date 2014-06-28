@@ -16,6 +16,19 @@ router.get('/discovery', function(req, res) {
     }
 });
 
+router.get('/registred-devices', function(req, res) {
+    if (req.xhr) {
+        tvApi.listRegistredDevices(function (data) {
+            console.log('Data:', data);
+            res.set('Content-Type', 'application/json');
+            res.send(data);
+        });
+    }
+    else {
+        errorResponse(res);
+    }
+});
+
 function defaultResponse(res, err, data) {
     var status = data.statusCode;
     if (err) {

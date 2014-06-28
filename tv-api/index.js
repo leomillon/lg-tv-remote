@@ -150,11 +150,16 @@ function buildApiXml(apiType, apiName, param, port) {
 }
 
 function getDevice(uuid) {
-    return knownDevices[uuid];
+    return _.findWhere(knownDevices, function(device) {
+        return device.uuid === uuid;
+    });
 }
 
-function registerDevice(device) {
-    return knownDevices[device.uuid] = device;
+function registerDevice(newDevice) {
+    knownDevices = _.reject(knownDevices, function (device) {
+        return device.uuid === this.uuid;
+    }, { "uuid": newDevice.uuid });
+    knownDevices.push(newDevice);
 }
 
 function sendDisplayKeyPairingRequest(device, callback) {
@@ -265,6 +270,22 @@ function discoverDevices(callback) {
     });
 }
 
+function hasPairingKey(device) {
+    return !_.isEmpty(device.pairingKey);
+}
+
+function listRegistredDevices(callback) {
+    var registredDevices = _.filter(knownDevices, hasPairingKey);
+    if (_.isUndefined(registredDevices)) {
+        callback([]);
+    }
+    else {
+        callback(_.map(registredDevices, function (device) {
+            return getSimpleDevice(device);
+        }));
+    }
+}
+
 function createStatusResponse(status, device) {
     return {
         "status": status,
@@ -273,6 +294,8 @@ function createStatusResponse(status, device) {
 }
 
 module.exports.discovery = discoverDevices;
+
+module.exports.listRegistredDevices = listRegistredDevices;
 
 module.exports.startPairing = function (uuid, key, callback) {
     var device = getDevice(uuid);

@@ -7,14 +7,19 @@
                 <h1>{{ title }}</h1>
             </div>
         </div>
-        <div class="row">
+        <div class="row" id="registred-devices">
             <div class="col-xs-12">
-                <button id="discovery-button" type="button" class="btn btn-default">Refresh</button>
+                <h3>Registred</h3>
+                <ul class="device-list">
+                    <!-- devices -->
+                </ul>
             </div>
         </div>
-        <div class="row" id="device-list-container">
+        <hr>
+        <div class="row" id="devices">
             <div class="col-xs-12">
-                <ul id="device-list">
+                <button id="discovery-button" type="button" class="btn btn-default">Scan network</button>
+                <ul class="device-list">
                     <!-- devices -->
                 </ul>
             </div>
@@ -55,7 +60,22 @@
         }
 
         function displayDiscoveredDevices(devices) {
-            var deviceListElement = $('#device-list');
+            displayDevices('#devices', devices);
+        }
+
+        function displayRegistredDevices(devices) {
+            var containerSelector = '#registred-devices';
+            if (_.isEmpty(devices)) {
+                $(containerSelector).hide();
+            }
+            else {
+                $(containerSelector).show();
+            }
+            displayDevices(containerSelector, devices);
+        }
+
+        function displayDevices(containerSelector, devices) {
+            var deviceListElement = $(containerSelector).find('.device-list');
             deviceListElement.empty();
             _.each(devices, function (device) {
                 var liElt = $('<li></li>');
@@ -121,12 +141,22 @@
             });
         }
 
+        function listRegistredDevices() {
+            $.ajax({
+                url: '/tv-api/registred-devices'
+            })
+            .done(function (devices) {
+                console.log('Registred devices :', devices);
+                displayRegistredDevices(devices);
+            });
+        }
+
         $(function () {
             $('#discovery-button').click(function () {
                 discoverDevices();
             });
 
-            $('#device-list').on('click', '.device', function () {
+            $('.device-list').on('click', '.device', function () {
                 currentDeviceId = $(this).attr('data-uuid');
                 connect(currentDeviceId, null, handleConnectionResponse);
                 event.preventDefault();
@@ -138,7 +168,7 @@
                 event.preventDefault();
             });
 
-            discoverDevices();
+            listRegistredDevices();
         });
     </script>
 {% endblock %}
