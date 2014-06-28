@@ -9,7 +9,7 @@
         </div>
         <div class="row">
             <div class="col-xs-12">
-                <button id="discovery-button" type="button" class="btn btn-default">Discover devices</button>
+                <button id="discovery-button" type="button" class="btn btn-default">Refresh</button>
             </div>
         </div>
         <div class="row" id="device-list-container">
@@ -111,15 +111,19 @@
             }
         }
 
+        function discoverDevices() {
+            $.ajax({
+                url: '/tv-api/discovery'
+            })
+            .done(function (devices) {
+                console.log('Devices :', devices);
+                displayDiscoveredDevices(devices);
+            });
+        }
+
         $(function () {
             $('#discovery-button').click(function () {
-                $.ajax({
-                    url: '/tv-api/discovery'
-                })
-                .done(function (devices) {
-                    console.log('Devices :', devices);
-                    displayDiscoveredDevices(devices);
-                });
+                discoverDevices();
             });
 
             $('#device-list').on('click', '.device', function () {
@@ -133,6 +137,8 @@
                 pairingKeyDefined();
                 event.preventDefault();
             });
+
+            discoverDevices();
         });
     </script>
 {% endblock %}
