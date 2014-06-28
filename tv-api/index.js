@@ -15,14 +15,6 @@ var libxmljs = require("libxmljs");
 
 var knownDevices = [];
 
-function hasNoValue(variable) {
-    return _.isNull(variable) || _.isUndefined(variable);
-}
-
-function hasValue(variable) {
-    return !hasNoValue(variable);
-}
-
 function buildTvContext(discoveryData) {
     if (discoveryData != null) {
         var descriptionLocation = discoveryData[LOCATION_KEY];
@@ -129,7 +121,7 @@ function sendHttpRequest(options, body, callback) {
         callback(e);
     });
 
-    if (hasValue(body)) {
+    if (!_.isEmpty(body)) {
         req.write(body);
     }
 
@@ -142,13 +134,13 @@ function buildApiXml(apiType, apiName, param, port) {
     var apiElement = doc.node('envelope')
         .node('api').attr('type', apiType);
 
-    if (hasValue(apiName)) {
+    if (!_.isEmpty(apiName)) {
         apiElement.node('name', apiName);
     }
-    if (hasValue(param)) {
+    if (!_.isEmpty(param)) {
         apiElement.node('value', String(param)); // Value needs to be a String
     }
-    if (hasValue(port)) {
+    if (!_.isEmpty(port)) {
         apiElement.node('port', String(port));
     }
 
@@ -240,7 +232,7 @@ function getSimpleDevice(device) {
         "name": device.name,
         "friendlyName": device.friendlyName,
         "type": device.type,
-        "registred": hasValue(device.pairingKey)
+        "registred": !_.isEmpty(device.pairingKey)
     };
 }
 
@@ -273,23 +265,37 @@ function discoverDevices(callback) {
     });
 }
 
-module.exports.discovery = discoverDevices;
+function createStatusResponse(status, device) {
+    return {
+        "status": status,
+        "device": getSimpleDevice(device)
+    };
+}
 
-module.exports.displayKey = function (uuid, callback) {
-    var device = getDevice(uuid);
-    sendDisplayKeyPairingRequest(device, function (err, res) {
-        callback(err, res);
-    });
-};
+module.exports.discovery = discoverDevices;
 
 module.exports.startPairing = function (uuid, key, callback) {
     var device = getDevice(uuid);
-    sendStartKeyPairingRequest(device, key, function (err, res) {
-        if (_.isNull(err)) {
-            updatePairingKey(device, key);
-        }
-        callback(err, res);
-    });
+    var keyToSend = !_.isEmpty(key) ? key : device.pairingKey;
+
+    if (!_.isEmpty(keyToSend)) {
+        sendStartKeyPairingRequest(device, keyToSend, function (err, res) {
+            var status;
+            if (_.isNull(err) && res.statusCode == "200") {
+                updatePairingKey(device, keyToSend);
+                status = 'CONNECTED';
+            }
+            else {
+                status = 'INVALID_PAIRING_KEY';
+            }
+            callback(err, createStatusResponse(status, device));
+        });
+    }
+    else {
+        sendDisplayKeyPairingRequest(device, function (err) {
+            callback(err, createStatusResponse('PAIRING_KEY_DISPLAYED', device));
+        });
+    }
 };
 
 module.exports.endPairing = function (uuid, callback) {

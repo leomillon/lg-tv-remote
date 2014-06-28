@@ -28,32 +28,20 @@ function errorResponse(res) {
     res.send(500, null);
 }
 
-router.post('/device/display-key', function(req, res) {
-    var uuid = req.body.deviceId;
-    if (req.xhr && uuid) {
-        tvApi.displayKey(uuid, function (err, data) {
-            data.body = _.isNull(err);
-            defaultResponse(res, err, data);
-        });
-    }
-    else {
-        errorResponse(res);
-    }
-});
-
-router.post('/device/start-pairing', function(req, res) {
+router.post('/device/connect', function(req, res) {
     var uuid = req.body.deviceId;
     var key = req.body.pairingKey;
-    if (req.xhr && uuid && key) {
+    if (req.xhr && uuid) {
         tvApi.startPairing(uuid, key, function (err, data) {
-            var success = _.isNull(err);
+            var success = data.status == 'CONNECTED';
 
             if (success) {
-                req.session.deviceId = uuid;
+                req.session.deviceId = data.device.uuid;
             }
 
-            data.body = success;
-            defaultResponse(res, err, data);
+            console.log('Data:', data);
+            res.set('Content-Type', 'application/json');
+            res.send(data);
         });
     }
     else {
@@ -61,7 +49,7 @@ router.post('/device/start-pairing', function(req, res) {
     }
 });
 
-router.post('/device/end-pairing', function(req, res) {
+router.post('/device/disconnect', function(req, res) {
     var uuid = req.session.deviceId;
     if (req.xhr && uuid) {
         tvApi.endPairing(uuid, function (err, data) {

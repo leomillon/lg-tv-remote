@@ -71,11 +71,6 @@
             });
         }
 
-        function displayPairingKey(uuid, callback) {
-            $.post(getDevicePath() + '/display-key', { deviceId: uuid })
-            .done(callback);
-        }
-
         function sendPairingKey(uuid, key, callback) {
             var sendBtn = $('#send-key-button');
             if (_.isEmpty(key)) {
@@ -83,26 +78,37 @@
             }
             else {
                 sendBtn.button('loading');
-                $.post(getDevicePath() + '/start-pairing', { deviceId: uuid, pairingKey: key })
-                .always(function () {
+                connect(uuid, key, function (res) {
                     sendBtn.button('reset');
-                })
-                .done(callback);
+                    callback(res);
+                });
             }
         }
 
         function pairingKeyDefined() {
             var pairingKey = $('#pairing-key-input').val();
-            sendPairingKey(currentDeviceId, pairingKey, function (success) {
-                if (success) {
+            sendPairingKey(currentDeviceId, pairingKey, handleConnectionResponse);
+        }
+
+        function connect(uuid, key, callback) {
+            $.post(getDevicePath() + '/connect', { deviceId: uuid, pairingKey: key })
+            .done(callback);
+        }
+
+        function handleConnectionResponse(res) {
+            switch (res.status) {
+                case 'PAIRING_KEY_DISPLAYED':
+                    $('#pairing-modal').modal('show');
+                    break;
+                case 'CONNECTED':
                     $('#pairing-key-input').val('');
                     $('#pairing-modal').modal('hide');
                     window.location.href = '/controller';
-                }
-                else {
+                    break;
+                default:
                     alert('Error...');
-                }
-            });
+                    break;
+            }
         }
 
         $(function () {
@@ -118,11 +124,7 @@
 
             $('#device-list').on('click', '.device', function () {
                 currentDeviceId = $(this).attr('data-uuid');
-                displayPairingKey(currentDeviceId, function(success) {
-                    if (success) {
-                        $('#pairing-modal').modal('show');
-                    }
-                });
+                connect(currentDeviceId, null, handleConnectionResponse);
                 event.preventDefault();
             });
 
