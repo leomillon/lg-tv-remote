@@ -16,10 +16,6 @@ router.get('/discovery', function(req, res) {
     }
 });
 
-router.get('/isknown', function(req, res) {
-    //TODO isknown api
-});
-
 function defaultResponse(res, err, data) {
     var status = data.statusCode;
     if (err) {

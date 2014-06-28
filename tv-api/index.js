@@ -165,10 +165,6 @@ function registerDevice(device) {
     return knownDevices[device.uuid] = device;
 }
 
-function isKnownDevice(uuid) {
-    return !_.isUndefined(getDevice(uuid));
-}
-
 function sendDisplayKeyPairingRequest(device, callback) {
     if (!_.isNull(device)) {
         console.log('\n\n==========DISPLAY KEY PAIRING==============');
@@ -222,13 +218,10 @@ function buildDeviceFromDescription(tvContext, xmlDescription) {
 function updateDevice(newDevice) {
     var uuid = newDevice.uuid;
     var knownDevice = getDevice(uuid);
-    if (_.isUndefined(knownDevice)) {
-        knownDevices.push(newDevice);
-    }
-    else {
+    if (!_.isUndefined(knownDevice)) {
         newDevice.pairingKey = knownDevice.pairingKey;
-        registerDevice(newDevice);
     }
+    registerDevice(newDevice);
     return newDevice;
 }
 
@@ -239,6 +232,16 @@ function updatePairingKey(device, pairingKey) {
     else {
         console.error("Unable to save pairing key on an undefined device");
     }
+}
+
+function getSimpleDevice(device) {
+    return {
+        "uuid": device.uuid,
+        "name": device.name,
+        "friendlyName": device.friendlyName,
+        "type": device.type,
+        "registred": hasValue(device.pairingKey)
+    };
 }
 
 function discoverDevices(callback) {
@@ -257,7 +260,7 @@ function discoverDevices(callback) {
 
                         var discoveredDevice = buildDeviceFromDescription(tvContext, xmlResponse);
                         var updatedDevice = updateDevice(discoveredDevice);
-                        devices.push(updatedDevice);
+                        devices.push(getSimpleDevice(updatedDevice));
                     }
 
                     finalCallback(devices);
@@ -271,10 +274,6 @@ function discoverDevices(callback) {
 }
 
 module.exports.discovery = discoverDevices;
-
-module.exports.isKnownDevice = function(uuid, callback) {
-    callback(isKnownDevice(uuid));
-};
 
 module.exports.displayKey = function (uuid, callback) {
     var device = getDevice(uuid);

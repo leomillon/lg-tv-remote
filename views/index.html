@@ -58,8 +58,16 @@
             var deviceListElement = $('#device-list');
             deviceListElement.empty();
             _.each(devices, function (device) {
-                deviceListElement.append('<li><a class="device" href="#" data-uuid="' + device.uuid + '">'
-                        + device.friendlyName + '</a></li>');
+                var liElt = $('<li></li>');
+                var linkElt = $('<a class="device" href="#" data-uuid="' + device.uuid + '">' + device.friendlyName + '</a>');
+
+                liElt.append(linkElt);
+                if (device.registred) {
+                    var favoriteElement = $(' <i class="fa fa-star"></i>');
+                    liElt.append(favoriteElement);
+                }
+
+                deviceListElement.append(liElt);
             });
         }
 
