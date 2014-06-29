@@ -22,9 +22,15 @@
         {% block content %}{% endblock %}
 
         {% block scripts %}
-            <script src="/components/underscore/underscore.min.js"></script>
-            <script src="/components/jquery/jquery.min.js"></script>
-            <script src="/components/bootstrap/js/bootstrap.min.js"></script>
+        <script src="/components/underscore/underscore.min.js"></script>
+        <script src="/components/jquery/jquery.min.js"></script>
+        <script src="/components/bootstrap/js/bootstrap.min.js"></script>
+        <script src="/components/fastclick/fastclick.js"></script>
+        <script>
+            $(function() {
+                FastClick.attach(document.body);
+            });
+        </script>
         {% endblock %}
     </body>
 </html>
