@@ -22,6 +22,76 @@
             </div>
         </div>
 
+        <!-- Navigation -->
+        <div class="row">
+            <div class="col-xs-4">
+                <div class="margin-bt">
+                    <a class="btn btn-default btn-block controller-key" href="#" title="External sources" data-key-value="{{ KEYS.EXTERNAL_INPUT }}"><i class="fa fa-external-link"></i></a>
+                </div>
+            </div>
+            <div class="col-xs-4">
+                <div class="margin-bt">
+                    <a class="btn btn-default btn-block controller-key" href="#" title="Direction up" data-key-value="{{ KEYS.DIRECTION.UP }}"><i class="fa fa-caret-up"></i></a>
+                </div>
+            </div>
+            <div class="col-xs-4">
+                <div class="margin-bt">
+                    <a class="btn btn-default btn-block controller-key" href="#" title="Current program info" data-key-value="{{ KEYS.CURRENT_PROG_INFO }}"><i class="fa fa-info"></i></a>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-xs-4">
+                <div class="margin-bt">
+                    <a class="btn btn-default btn-block controller-key" href="#" title="Direction left" data-key-value="{{ KEYS.DIRECTION.LEFT }}"><i class="fa fa-caret-left"></i></a>
+                </div>
+            </div>
+            <div class="col-xs-4">
+                <div class="margin-bt">
+                    <a class="btn btn-default btn-block controller-key" href="#" title="Ok" data-key-value="{{ KEYS.OK }}">OK</a>
+                </div>
+            </div>
+            <div class="col-xs-4">
+                <div class="margin-bt">
+                    <a class="btn btn-default btn-block controller-key" href="#" title="Direction right" data-key-value="{{ KEYS.DIRECTION.RIGHT }}"><i class="fa fa-caret-right"></i></a>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-xs-4">
+                <a class="btn btn-default btn-block controller-key" href="#" title="Back" data-key-value="{{ KEYS.PREVIOUS }}"><i class="fa fa-reply"></i></a>
+            </div>
+            <div class="col-xs-4">
+                <a class="btn btn-default btn-block controller-key" href="#" title="Direction down" data-key-value="{{ KEYS.DIRECTION.DOWN }}"><i class="fa fa-caret-down"></i></a>
+            </div>
+            <div class="col-xs-4">
+                <a class="btn btn-default btn-block controller-key" href="#" title="Menu" data-key-value="{{ KEYS.HOME_MENU }}">Menu</a>
+            </div>
+        </div>
+
+        <hr>
+
+        <!-- Sound and channel commands -->
+        <div class="row">
+            <div class="col-xs-4">
+                <div class="btn-group-vertical btn-block">
+                    <a class="btn btn-default controller-key" href="#" title="Volume up" data-key-value="{{ KEYS.VOLUME.UP }}"><i class="fa fa-volume-up"></i></a>
+                    <a class="btn btn-default controller-key" href="#" title="Volume down" data-key-value="{{ KEYS.VOLUME.DOWN }}"><i class="fa fa-volume-down"></i></a>
+                    <a class="btn btn-default controller-key" href="#" title="Mute" data-key-value="{{ KEYS.VOLUME.MUTE }}"><i class="fa fa-volume-off"></i></a>
+                </div>
+            </div>
+            <div class="col-xs-4 col-xs-offset-4">
+                <div class="btn-group-vertical btn-block">
+                    <a class="btn btn-default controller-key" href="#" title="Channel up" data-key-value="{{ KEYS.CHANNEL.UP }}">P+</a>
+                    <a class="btn btn-default controller-key" href="#" title="Channel down" data-key-value="{{ KEYS.CHANNEL.DOWN }}">P-</a>
+                    <a class="btn btn-default controller-key" href="#" title="Channel list" data-key-value="{{ KEYS.PROG_LIST }}"><i class="fa fa-list"></i></a>
+                </div>
+            </div>
+        </div>
+
+        <hr>
+
+        <!-- Numbers -->
         <div class="row">
             <div class="col-xs-12">
                 <div class="margin-bt">
@@ -58,22 +128,6 @@
         <div class="row">
             <div class="col-xs-4 col-xs-offset-4">
                 <button type="button" class="btn btn-default btn-block controller-key" data-key-value="{{ KEYS.NUMBER.ZERO }}">0</button>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-xs-4">
-                <div class="btn-group-vertical btn-block">
-                    <a class="btn btn-default controller-key" href="#" title="Volume up" data-key-value="{{ KEYS.VOLUME.UP }}"><i class="fa fa-volume-up"></i></a>
-                    <a class="btn btn-default controller-key" href="#" title="Volume down" data-key-value="{{ KEYS.VOLUME.DOWN }}"><i class="fa fa-volume-down"></i></a>
-                    <a class="btn btn-default controller-key" href="#" title="Mute" data-key-value="{{ KEYS.VOLUME.MUTE }}"><i class="fa fa-volume-off"></i></a>
-                </div>
-            </div>
-            <div class="col-xs-4 col-xs-offset-4">
-                <div class="btn-group-vertical btn-block">
-                    <a class="btn btn-default controller-key" href="#" title="Channel up" data-key-value="{{ KEYS.CHANNEL.UP }}">P+</a>
-                    <a class="btn btn-default controller-key" href="#" title="Channel down" data-key-value="{{ KEYS.CHANNEL.DOWN }}">P-</a>
-                    <a class="btn btn-default controller-key" href="#" title="Channel list" data-key-value="{{ KEYS.PROG_LIST }}"><i class="fa fa-list"></i></a>
-                </div>
             </div>
         </div>
     </div>
