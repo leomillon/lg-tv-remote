@@ -150,9 +150,7 @@ function buildApiXml(apiType, apiName, param, port) {
 }
 
 function getDevice(uuid) {
-    return _.findWhere(knownDevices, function(device) {
-        return device.uuid === uuid;
-    });
+    return _.findWhere(knownDevices, {"uuid": uuid});
 }
 
 function registerDevice(newDevice) {
