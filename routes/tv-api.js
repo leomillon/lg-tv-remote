@@ -1,7 +1,7 @@
 var express = require('express');
 var router = express.Router();
 var _ = require('underscore');
-var tvApi = require('../tv-api');
+var tvApi = require('lg-tv-api');
 
 router.get('/discovery', function(req, res) {
     if (req.xhr) {
